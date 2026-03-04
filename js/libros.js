@@ -1,6 +1,7 @@
-const buscar_libros = {
+const libros = {
     template: `
     <div class="container-fluid py-4">
+      <!-- HEADER -->
       <div class="d-flex align-items-center gap-3 mb-4">
         <div style="width:56px;height:56px;border-radius:16px;
              background:linear-gradient(135deg,#0ea5e9,#2563eb);
@@ -11,60 +12,177 @@ const buscar_libros = {
           </svg>
         </div>
         <div>
-          <h2 class="mb-0 fw-bold" style="color:#1e3a5f">Búsqueda de Libros</h2>
-          <p class="mb-0" style="color:#6b7280">Consulte, edite o elimine libros del catálogo</p>
+          <h2 class="mb-0 fw-bold" style="color:#1e3a5f">Gestión de Libros</h2>
+          <p class="mb-0" style="color:#6b7280">Registre y administre el catálogo de libros</p>
         </div>
       </div>
 
+      <!-- FORMULARIO -->
+      <div class="card border-0 shadow-lg mb-4" style="border-radius:1.5rem;overflow:hidden;">
+        <div style="background:linear-gradient(135deg,#0ea5e9,#2563eb);padding:1rem 1.5rem;">
+          <h5 class="mb-0 text-white fw-semibold">
+            <span v-if="!form.idLibro">➕ NUEVO LIBRO</span>
+            <span v-else>✏️ MODIFICAR LIBRO</span>
+          </h5>
+        </div>
+        <div class="card-body p-4" style="background:#f8fcff;">
+          <div class="row g-4">
+            <!-- ISBN -->
+            <div class="col-md-2">
+              <label class="form-label fw-bold mb-1" style="color:#4b5563;font-size:.85rem;">
+                ISBN <span class="text-danger">*</span>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text bg-white border-end-0" style="font-size:1rem;">📘</span>
+                <input type="text" class="form-control border-start-0 ps-1 shadow-none"
+                  :class="{'is-invalid border-danger': errores.isbn}"
+                  v-model.trim="form.isbn"
+                  placeholder="978-0-00-000"
+                  style="background:white;font-size:.95rem;" />
+                <div class="invalid-feedback">{{ errores.isbn }}</div>
+              </div>
+            </div>
+
+            <!-- Título -->
+            <div class="col-md-4">
+              <label class="form-label fw-bold mb-1" style="color:#4b5563;font-size:.85rem;">
+                TÍTULO <span class="text-danger">*</span>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text bg-white border-end-0" style="font-size:1rem;">📖</span>
+                <input type="text" class="form-control border-start-0 ps-1 shadow-none"
+                  :class="{'is-invalid border-danger': errores.titulo}"
+                  v-model.trim="form.titulo"
+                  placeholder="Título del libro"
+                  style="background:white;font-size:.95rem;" />
+                <div class="invalid-feedback">{{ errores.titulo }}</div>
+              </div>
+            </div>
+
+            <!-- Autor -->
+            <div class="col-md-3">
+              <label class="form-label fw-bold mb-1" style="color:#4b5563;font-size:.85rem;">
+                AUTOR <span class="text-danger">*</span>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text bg-white border-end-0" style="font-size:1rem;">👤</span>
+                <select class="form-select border-start-0 shadow-none"
+                  :class="{'is-invalid border-danger': errores.idAutor}"
+                  v-model="form.idAutor"
+                  style="background:white;font-size:.95rem;">
+                  <option value="">— Seleccione un autor —</option>
+                  <option v-for="a in autores" :key="a.idAutor" :value="a.idAutor">
+                    {{ a.nombre }}
+                  </option>
+                </select>
+                <div class="invalid-feedback">{{ errores.idAutor }}</div>
+              </div>
+            </div>
+
+            <!-- Editorial -->
+            <div class="col-md-2">
+              <label class="form-label fw-bold mb-1" style="color:#4b5563;font-size:.85rem;">EDITORIAL</label>
+              <div class="input-group">
+                <span class="input-group-text bg-white border-end-0" style="font-size:1rem;">🏢</span>
+                <input type="text" class="form-control border-start-0 ps-1 shadow-none"
+                  v-model.trim="form.editorial"
+                  placeholder="Editorial"
+                  style="background:white;font-size:.95rem;" />
+              </div>
+            </div>
+
+            <!-- Edición -->
+            <div class="col-md-1">
+              <label class="form-label fw-bold mb-1" style="color:#4b5563;font-size:.85rem;">EDICIÓN</label>
+              <div class="input-group">
+                <span class="input-group-text bg-white border-end-0" style="font-size:1rem;">🔢</span>
+                <input type="text" class="form-control border-start-0 ps-1 shadow-none"
+                  v-model.trim="form.edicion"
+                  placeholder="1ra"
+                  style="background:white;font-size:.95rem;" />
+              </div>
+            </div>
+          </div>
+
+          <div class="row mt-4">
+            <div class="col-12 d-flex justify-content-end gap-2">
+              <button class="btn px-4 py-2 fw-semibold text-white shadow-sm"
+                style="background:linear-gradient(135deg,#0ea5e9,#2563eb);
+                       border:none;border-radius:12px;font-size:.95rem;"
+                @click="guardar">
+                <span v-if="!form.idLibro">💾 Guardar Libro</span>
+                <span v-else>✏️ Actualizar Libro</span>
+              </button>
+              <button class="btn btn-outline-secondary px-4 py-2"
+                style="border-radius:12px;font-size:.95rem;" 
+                @click="limpiar">
+                🔄 Nuevo
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABLA DE REGISTROS -->
       <div class="card border-0 shadow-lg" style="border-radius:1.5rem;overflow:hidden;">
         <!-- Barra de búsqueda -->
         <div style="background:linear-gradient(135deg,#0c1a2e,#1e3a5f);padding:1.2rem 1.5rem;">
-          <h5 class="text-white fw-bold mb-3">🔍 BUSCAR LIBRO</h5>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="text-white fw-bold mb-0">
+              <span style="margin-right:10px;">📋</span> LISTADO DE LIBROS
+            </h5>
+            <div class="d-flex gap-3">
+              <span class="badge" style="background:rgba(255,255,255,.15);padding:8px 16px;">
+                Total: <strong class="text-white ms-1">{{ lista.length }}</strong>
+              </span>
+              <span class="badge" style="background:rgba(255,255,255,.15);padding:8px 16px;">
+                Filtrados: <strong class="text-white ms-1">{{ listaFiltrada.length }}</strong>
+              </span>
+            </div>
+          </div>
+          
+          <!-- Filtros de búsqueda (3 campos) -->
           <div class="row g-3">
             <div class="col-md-3">
               <div class="input-group">
                 <span class="input-group-text bg-transparent border-white text-white">📘</span>
                 <input type="text" class="form-control bg-transparent text-white border-white"
-                  v-model="busqueda.isbn" @input="filtrar" placeholder="Buscar por ISBN...">
+                  v-model="busqueda.isbn" @input="filtrar"
+                  placeholder="Buscar por ISBN...">
               </div>
             </div>
             <div class="col-md-3">
               <div class="input-group">
                 <span class="input-group-text bg-transparent border-white text-white">📖</span>
                 <input type="text" class="form-control bg-transparent text-white border-white"
-                  v-model="busqueda.titulo" @input="filtrar" placeholder="Buscar por título...">
+                  v-model="busqueda.titulo" @input="filtrar"
+                  placeholder="Buscar por título...">
               </div>
             </div>
             <div class="col-md-2">
               <div class="input-group">
                 <span class="input-group-text bg-transparent border-white text-white">👤</span>
                 <input type="text" class="form-control bg-transparent text-white border-white"
-                  v-model="busqueda.autor" @input="filtrar" placeholder="Buscar autor...">
+                  v-model="busqueda.autor" @input="filtrar"
+                  placeholder="Buscar autor...">
               </div>
             </div>
             <div class="col-md-2">
               <div class="input-group">
                 <span class="input-group-text bg-transparent border-white text-white">🏢</span>
                 <input type="text" class="form-control bg-transparent text-white border-white"
-                  v-model="busqueda.editorial" @input="filtrar" placeholder="Buscar editorial...">
+                  v-model="busqueda.editorial" @input="filtrar"
+                  placeholder="Buscar editorial...">
               </div>
             </div>
             <div class="col-md-2">
-              <button @click="limpiarFiltros" class="btn btn-light w-100">🔄 Limpiar</button>
+              <button @click="limpiarBusqueda" class="btn btn-light w-100">🔄 Limpiar</button>
             </div>
-          </div>
-          <div class="d-flex gap-3 mt-3">
-            <span class="badge" style="background:rgba(255,255,255,.15);padding:8px 16px;">
-              Total: <strong class="text-white ms-1">{{ lista.length }}</strong>
-            </span>
-            <span class="badge" style="background:rgba(255,255,255,.15);padding:8px 16px;">
-              Filtrados: <strong class="text-white ms-1">{{ listaFiltrada.length }}</strong>
-            </span>
           </div>
         </div>
 
-        <!-- Tabla de resultados -->
-        <div style="overflow-x:auto;max-height:550px;overflow-y:auto;">
+        <!-- Tabla -->
+        <div style="overflow-x:auto;max-height:500px;overflow-y:auto;">
           <table class="table table-hover mb-0" style="min-width:900px;">
             <thead style="position:sticky;top:0;z-index:2;background:#e8f0fe;">
               <tr>
@@ -78,7 +196,8 @@ const buscar_libros = {
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(l, i) in listaFiltrada" :key="l.idLibro">
+              <tr v-for="(l, i) in listaFiltrada" :key="l.idLibro"
+                :class="{ 'table-info': form.idLibro === l.idLibro }">
                 <td style="padding:12px 16px;">{{ i + 1 }}</td>
                 <td style="padding:12px 16px;">
                   <span class="badge" style="background:#dbeafe;color:#1d4ed8;padding:6px 12px;">
@@ -94,20 +213,21 @@ const buscar_libros = {
                 <td style="padding:12px 16px;">{{ l.editorial || '—' }}</td>
                 <td style="padding:12px 16px;">{{ l.edicion || '—' }}</td>
                 <td style="padding:12px 16px;text-align:center;">
-                  <button @click="$emit('modificar', l)" class="btn btn-sm btn-primary me-2"
+                  <button @click="cargarEdicion(l)" class="btn btn-sm btn-primary me-2 btn-action"
                     style="background:linear-gradient(135deg,#0ea5e9,#2563eb);border:none;">
                     ✏️ Editar
                   </button>
-                  <button @click="eliminar(l.idLibro)" class="btn btn-sm btn-danger"
+                  <button @click="eliminar(l.idLibro)" class="btn btn-sm btn-danger btn-action"
                     style="background:linear-gradient(135deg,#ef4444,#dc2626);border:none;">
                     🗑️ Eliminar
                   </button>
                 </td>
               </tr>
               <tr v-if="listaFiltrada.length === 0">
-                <td colspan="7" style="text-align:center;padding:60px;">
-                  <div style="font-size:3.5rem;">📚</div>
+                <td colspan="7" style="text-align:center;padding:60px 20px;">
+                  <div style="font-size:3.5rem;margin-bottom:15px;">📚</div>
                   <h5 style="color:#9ca3af;">No se encontraron libros</h5>
+                  <p style="color:#d1d5db;">Registre un nuevo libro o cambie los filtros de búsqueda</p>
                 </td>
               </tr>
             </tbody>
@@ -116,21 +236,29 @@ const buscar_libros = {
       </div>
     </div>`,
 
-    emits: ['modificar'],
-
     data() {
         return {
             lista: [],
             autores: [],
             listaFiltrada: [],
-            busqueda: { isbn: '', titulo: '', autor: '', editorial: '' }
+            form: { idLibro: null, idAutor: '', isbn: '', titulo: '', editorial: '', edicion: '' },
+            errores: { isbn: '', titulo: '', idAutor: '' },
+            busqueda: { isbn: '', titulo: '', autor: '', editorial: '' } // 4 campos de búsqueda
         };
     },
 
+    async mounted() {
+        await this.cargarAutores();
+        await this.cargarLista();
+    },
+
     methods: {
-        async obtenerLibros() {
-            this.lista = await db.table('libros').toArray();
+        async cargarAutores() {
             this.autores = await db.table('autor').toArray();
+        },
+        
+        async cargarLista() {
+            this.lista = await db.table('libros').toArray();
             this.filtrar();
         },
         
@@ -149,14 +277,74 @@ const buscar_libros = {
             });
         },
         
+        limpiarBusqueda() {
+            this.busqueda = { isbn: '', titulo: '', autor: '', editorial: '' };
+            this.filtrar();
+        },
+        
         nombreAutor(idAutor) {
             const a = this.autores.find(x => x.idAutor === idAutor);
             return a ? a.nombre : '—';
         },
         
-        limpiarFiltros() {
-            this.busqueda = { isbn: '', titulo: '', autor: '', editorial: '' };
-            this.filtrar();
+        validar() {
+            this.errores = { isbn: '', titulo: '', idAutor: '' };
+            let ok = true;
+            if (!this.form.isbn) { 
+                this.errores.isbn = 'El ISBN es obligatorio'; 
+                ok = false; 
+            }
+            if (!this.form.titulo) { 
+                this.errores.titulo = 'El título es obligatorio'; 
+                ok = false; 
+            }
+            if (!this.form.idAutor) { 
+                this.errores.idAutor = 'Seleccione un autor'; 
+                ok = false; 
+            }
+            return ok;
+        },
+        
+        async guardar() {
+            if (!this.validar()) return;
+            
+            try {
+                const datos = {
+                    idAutor: this.form.idAutor,
+                    isbn: this.form.isbn,
+                    titulo: this.form.titulo,
+                    editorial: this.form.editorial,
+                    edicion: this.form.edicion
+                };
+                
+                if (this.form.idLibro) {
+                    await db.table('libros').update(this.form.idLibro, datos);
+                    alertify.success('✅ Libro actualizado correctamente');
+                } else {
+                    await db.table('libros').add(datos);
+                    alertify.success('✅ Libro registrado correctamente');
+                }
+                
+                this.limpiar();
+                await this.cargarLista();
+            } catch (e) {
+                alertify.error('❌ Error: ' + e.message);
+            }
+        },
+        
+        cargarEdicion(l) {
+            this.form = { ...l };
+            this.errores = { isbn: '', titulo: '', idAutor: '' };
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        },
+        
+        modificarLibro(data) {
+            this.cargarEdicion(data);
+        },
+        
+        limpiar() {
+            this.form = { idLibro: null, idAutor: '', isbn: '', titulo: '', editorial: '', edicion: '' };
+            this.errores = { isbn: '', titulo: '', idAutor: '' };
         },
         
         async eliminar(id) {
@@ -165,12 +353,13 @@ const buscar_libros = {
                 '¿Está seguro que desea eliminar este libro?',
                 async () => {
                     await db.table('libros').delete(id);
-                    alertify.success('🗑️ Libro eliminado correctamente');
-                    await this.obtenerLibros();
+                    alertify.success('🗑️ Libro eliminado');
+                    if (this.form.idLibro === id) this.limpiar();
+                    await this.cargarLista();
                 },
                 () => {}
             ).setHeader('⚠️ Advertencia');
         }
     }
 };
-window.BuscarLibros = buscar_libros;
+window.Libros = libros;
