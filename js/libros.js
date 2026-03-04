@@ -12,7 +12,7 @@ const libros = {
           </svg>
         </div>
         <div>
-          <h2 class="mb-0 fw-bold" style="color:#1e3a5f">Gestión de Libros</h2>
+          <h2 class="mb-0 fw-bold" style="color:#1e3a5f">Libros</h2>
           <p class="mb-0" style="color:#6b7280">Registre y administre el catálogo de libros</p>
         </div>
       </div>
