@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sistema Biblioteca</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.14.0/build/css/alertify.min.css"/>
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.14.0/build/css/themes/default.min.css"/>
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.14.0/build/css/themes/semantic.min.css"/>
+    <style>
+        body { background: #f4f6fb; }
+        .navbar {
+            border-bottom: 1px solid #e2e8f0;
+            box-shadow: 0 1px 8px rgba(0,0,0,.07);
+            background: #fff !important;
+        }
+        .navbar-brand {
+            font-weight: 800;
+            letter-spacing: .5px;
+            color: #4f46e5 !important;
+            font-size: 1rem;
+        }
+        .nav-link {
+            font-weight: 500;
+            color: #374151 !important;
+            border-radius: 8px;
+            padding: 6px 16px !important;
+            transition: all .2s;
+        }
+        .nav-link:hover, .nav-link.activo {
+            background: #ede9fe;
+            color: #4f46e5 !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <nav class="navbar navbar-expand-lg">
+            <div class="container-fluid px-4">
+                <a class="navbar-brand" href="#">📚 SISTEMA BIBLIOTECA</a>
+                <div class="navbar-nav ms-3 flex-row gap-1">
+                    <a class="nav-link" href="#"
+                       :class="{ activo: forms.autor.mostrar }"
+                       @click="abrirVentana('autor')">👤 Autor</a>
+
+                    <a class="nav-link" href="#"
+                       :class="{ activo: forms.buscar_autor.mostrar }"
+                       @click="abrirVentana('buscar_autor')">🔍 Buscar Autor</a>
+
+                    <a class="nav-link" href="#"
+                       :class="{ activo: forms.libros.mostrar }"
+                       @click="abrirVentana('libros')">📖 Libros</a>
+
+                    <a class="nav-link" href="#"
+                       :class="{ activo: forms.buscar_libros.mostrar }"
+                       @click="abrirVentana('buscar_libros')">🔍 Buscar Libros</a>
+                </div>
+            </div>
+        </nav>
+
+        <div id="appSistema" class="container-fluid">
+            <autor
+                @buscar='buscar("buscar_autor","obtenerAutores")'
+                :forms="forms"
+                ref="autor"
+                v-show="forms.autor.mostrar">
+            </autor>
+
+            <buscar_autor
+                @modificar='modificar("autor","modificarAutor", $event)'
+                ref="buscar_autor"
+                v-show="forms.buscar_autor.mostrar">
+            </buscar_autor>
+
+            <libros
+                @buscar='buscar("buscar_libros","obtenerLibros")'
+                :forms="forms"
+                ref="libros"
+                v-show="forms.libros.mostrar">
+            </libros>
+
+            <buscar_libros
+                @modificar='modificar("libros","modificarLibro", $event)'
+                ref="buscar_libros"
+                v-show="forms.buscar_libros.mostrar">
+            </buscar_libros>
+        </div>
+    </div>
+
+    <script src="//cdn.jsdelivr.net/npm/alertifyjs@1.14.0/build/alertify.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="js/autor.js"></script>
+    <script src="js/buscar_autor.js"></script>
+    <script src="js/libros.js"></script>
+    <script src="js/buscar_libros.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
