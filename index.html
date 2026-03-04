@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sistema Biblioteca - Parcial I</title>
+    <title>Sistema Biblioteca</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.14.0/build/css/alertify.min.css"/>
     <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.14.0/build/css/themes/default.min.css"/>
@@ -83,7 +83,7 @@
             <div class="container-fluid px-4">
                 <a class="navbar-brand" href="#">
                     <span style="font-size:1.5rem; margin-right:8px;">📚</span> 
-                    SISTEMA BIBLIOTECA - PARCIAL I
+                    SISTEMA BIBLIOTECA
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                     <span class="navbar-toggler-icon"></span>
@@ -96,19 +96,9 @@
                            👤 Autor
                         </a>
                         <a class="nav-link" href="#"
-                           :class="{ activo: ventanaActiva === 'buscar_autor' }"
-                           @click.prevent="abrirVentana('buscar_autor')">
-                           🔍 Buscar Autor
-                        </a>
-                        <a class="nav-link" href="#"
                            :class="{ 'activo-blue': ventanaActiva === 'libros' }"
                            @click.prevent="abrirVentana('libros')">
                            📖 Libros
-                        </a>
-                        <a class="nav-link" href="#"
-                           :class="{ 'activo-blue': ventanaActiva === 'buscar_libros' }"
-                           @click.prevent="abrirVentana('buscar_libros')">
-                           🔍 Buscar Libros
                         </a>
                     </div>
                 </div>
