@@ -12,7 +12,7 @@ const autor = {
           </svg>
         </div>
         <div>
-          <h2 class="mb-0 fw-bold" style="color:#1e1b4b">Gestión de Autores</h2>
+          <h2 class="mb-0 fw-bold" style="color:#1e1b4b">Autores</h2>
           <p class="mb-0" style="color:#6b7280">Registre y administre los autores del sistema</p>
         </div>
       </div>
