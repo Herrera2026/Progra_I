@@ -1,86 +1,92 @@
 const { createApp } = Vue;
 
-// ════════════════════════════════════════════════════════
-//  db — emula la API de Dexie usando localStorage
-//  Claves usadas:
-//    db_usss033118_autor   → JSON array de autores
-//    db_usss033118_libros  → JSON array de libros
-// ════════════════════════════════════════════════════════
-const DB_PREFIX = 'db_usss033118_';
-
-const db = {
-    _leer(tabla) {
-        return JSON.parse(localStorage.getItem(DB_PREFIX + tabla) || '[]');
-    },
-    _guardar(tabla, data) {
-        localStorage.setItem(DB_PREFIX + tabla, JSON.stringify(data));
-    },
-    _pk(tabla) {
-        // Mapea el nombre de tabla → nombre del campo PK
-        const mapa = { autor: 'idAutor', libros: 'idLibro' };
-        return mapa[tabla] || ('id' + tabla.charAt(0).toUpperCase() + tabla.slice(1));
-    },
-
-    table(tabla) {
-        const self = this;
-        return {
-            toArray() {
-                return Promise.resolve(self._leer(tabla));
-            },
-            add(registro) {
-                const lista = self._leer(tabla);
-                const pk    = self._pk(tabla);
-                const ids   = lista.map(r => r[pk] || 0);
-                registro[pk] = ids.length ? Math.max(...ids) + 1 : 1;
-                lista.push(registro);
-                self._guardar(tabla, lista);
-                return Promise.resolve(registro[pk]);
-            },
-            update(id, cambios) {
-                const lista = self._leer(tabla);
-                const pk    = self._pk(tabla);
-                const idx   = lista.findIndex(r => r[pk] === id);
-                if (idx !== -1) lista[idx] = { ...lista[idx], ...cambios };
-                self._guardar(tabla, lista);
-                return Promise.resolve();
-            },
-            delete(id) {
-                const pk    = self._pk(tabla);
-                const lista = self._leer(tabla).filter(r => r[pk] !== id);
-                self._guardar(tabla, lista);
-                return Promise.resolve();
-            }
-        };
-    }
-};
-// ════════════════════════════════════════════════════════
-
-createApp({
+const app = createApp({
     components: {
         autor,
         buscar_autor,
         libros,
         buscar_libros
     },
+    
     data() {
         return {
+            ventanaActiva: 'autor', // Mostrar autor por defecto
             forms: {
-                autor:         { mostrar: false },
-                buscar_autor:  { mostrar: false },
-                libros:        { mostrar: false },
+                autor: { mostrar: false },
+                buscar_autor: { mostrar: false },
+                libros: { mostrar: false },
                 buscar_libros: { mostrar: false }
             }
         };
     },
+    
+    mounted() {
+        // Inicializar mostrando la ventana de autor
+        this.abrirVentana('autor');
+    },
+    
     methods: {
-        buscar(ventana, metodo) {
-            this.$refs[ventana][metodo]();
-        },
         abrirVentana(ventana) {
-            this.forms[ventana].mostrar = !this.forms[ventana].mostrar;
+            console.log('Abriendo ventana:', ventana);
+            this.ventanaActiva = ventana;
+            
+            // Actualizar forms para los watchers
+            Object.keys(this.forms).forEach(key => {
+                this.forms[key].mostrar = (key === ventana);
+            });
+            
+            // Cargar datos según la ventana
+            this.$nextTick(() => {
+                const ref = this.$refs[ventana];
+                if (!ref) {
+                    console.log('No hay referencia para:', ventana);
+                    return;
+                }
+                
+                console.log('Referencia encontrada:', ventana, ref);
+                
+                switch(ventana) {
+                    case 'autor':
+                        if (ref.cargarLista) {
+                            ref.cargarLista();
+                            ref.limpiar();
+                        }
+                        break;
+                    case 'buscar_autor':
+                        if (ref.obtenerAutores) ref.obtenerAutores();
+                        break;
+                    case 'libros':
+                        if (ref.cargarAutores) {
+                            ref.cargarAutores().then(() => {
+                                if (ref.cargarLista) ref.cargarLista();
+                            });
+                        }
+                        break;
+                    case 'buscar_libros':
+                        if (ref.obtenerLibros) ref.obtenerLibros();
+                        break;
+                }
+            });
         },
-        modificar(ventana, metodo, data) {
-            this.$refs[ventana][metodo](data);
+
+        editarAutor(data) {
+            this.abrirVentana('autor');
+            this.$nextTick(() => {
+                if (this.$refs.autor && this.$refs.autor.modificarAutor) {
+                    this.$refs.autor.modificarAutor(data);
+                }
+            });
+        },
+
+        editarLibro(data) {
+            this.abrirVentana('libros');
+            this.$nextTick(() => {
+                if (this.$refs.libros && this.$refs.libros.modificarLibro) {
+                    this.$refs.libros.modificarLibro(data);
+                }
+            });
         }
     }
-}).mount('#app');
+});
+
+app.mount('#app');
