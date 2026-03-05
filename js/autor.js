@@ -66,7 +66,7 @@ const autor = {
                 <span class="input-group-text bg-white border-end-0" style="font-size:1rem;">🌍</span>
                 <input type="text" class="form-control border-start-0 ps-1 shadow-none"
                   v-model.trim="form.pais"
-                  placeholder="Ej: El Salvador"
+                  placeholder="Ej: El salvador"
                   style="background:white;font-size:.95rem;" />
               </div>
             </div>
