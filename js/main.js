@@ -1,150 +1,76 @@
-<!doctype html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sistema Biblioteca — USSS033118</title>
+const { createApp } = Vue;
 
-    <!-- Bootstrap 5 -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" />
-    <!-- AlertifyJS -->
-    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.14.0/build/css/alertify.min.css"/>
-    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.14.0/build/css/themes/default.min.css"/>
+const app = createApp({
+    data() {
+        return {
+            ventanaActiva: 'autor',
+            forms: {
+                autor:         { mostrar: false },
+                buscar_autor:  { mostrar: false },
+                libros:        { mostrar: false },
+                buscar_libros: { mostrar: false }
+            }
+        };
+    },
 
-    <style>
-        body {
-            background: #f4f6fb;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    mounted() {
+        this.abrirVentana('autor');
+    },
+
+    methods: {
+        abrirVentana(ventana) {
+            this.ventanaActiva = ventana;
+            Object.keys(this.forms).forEach(k => {
+                this.forms[k].mostrar = (k === ventana);
+            });
+
+            this.$nextTick(() => {
+                const ref = this.$refs[ventana];
+                if (!ref) return;
+
+                switch (ventana) {
+                    case 'autor':
+                        if (ref.cargarLista) { ref.cargarLista(); ref.limpiar(); }
+                        break;
+                    case 'buscar_autor':
+                        if (ref.obtenerAutores) ref.obtenerAutores();
+                        break;
+                    case 'libros':
+                        if (ref.cargarAutores) {
+                            ref.cargarAutores().then(() => {
+                                if (ref.cargarLista) ref.cargarLista();
+                            });
+                        }
+                        break;
+                    case 'buscar_libros':
+                        if (ref.obtenerLibros) ref.obtenerLibros();
+                        break;
+                }
+            });
+        },
+
+        editarAutor(data) {
+            this.abrirVentana('autor');
+            this.$nextTick(() => {
+                if (this.$refs.autor?.modificarAutor)
+                    this.$refs.autor.modificarAutor(data);
+            });
+        },
+
+        editarLibro(data) {
+            this.abrirVentana('libros');
+            this.$nextTick(() => {
+                if (this.$refs.libros?.modificarLibro)
+                    this.$refs.libros.modificarLibro(data);
+            });
         }
-        .navbar {
-            border-bottom: 1px solid #e2e8f0;
-            box-shadow: 0 1px 8px rgba(0,0,0,.07);
-            background: #fff !important;
-            padding: 0.8rem 1rem;
-        }
-        .navbar-brand {
-            font-weight: 800;
-            letter-spacing: .5px;
-            color: #4f46e5 !important;
-            font-size: 1.2rem;
-        }
-        .nav-link {
-            font-weight: 500;
-            color: #374151 !important;
-            border-radius: 8px;
-            padding: 8px 20px !important;
-            transition: all .2s;
-            cursor: pointer;
-            margin: 0 2px;
-        }
-        .nav-link:hover      { background: #ede9fe; color: #4f46e5 !important; }
-        .nav-link.activo     { background: #4f46e5; color: #fff !important; }
-        .nav-link.activo-blue{ background: #2563eb; color: #fff !important; }
-        .card {
-            border-radius: 1.2rem;
-            transition: transform 0.2s;
-        }
-        .card:hover { transform: translateY(-2px); }
-        .input-group-text {
-            background: #f8f7ff;
-            border-right: none;
-        }
-        .form-control:focus, .form-select:focus {
-            border-color: #4f46e5;
-            box-shadow: 0 0 0 0.2rem rgba(79,70,229,.25);
-        }
-        .table th {
-            background: #f8f7ff;
-            color: #4b5563;
-            font-weight: 700;
-            font-size: 0.76rem;
-            letter-spacing: 0.8px;
-            text-transform: uppercase;
-        }
-        .btn-action { transition: all 0.2s; }
-        .btn-action:hover { opacity: 0.8; transform: scale(1.05); }
-    </style>
-</head>
-<body>
+    }
+});
 
-<div id="app">
+// Registrar componentes globales
+app.component('autor',         window.Autor);
+app.component('buscar_autor',  window.BuscarAutor);
+app.component('libros',        window.Libros);
+app.component('buscar_libros', window.BuscarLibros);
 
-    <!-- NAVBAR -->
-    <nav class="navbar navbar-expand-lg">
-        <div class="container-fluid px-4">
-            <a class="navbar-brand" href="#">
-                <span style="font-size:1.5rem;margin-right:8px;">📚</span>
-                SISTEMA BIBLIOTECA
-            </a>
-            <button class="navbar-toggler" type="button"
-                    data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <div class="navbar-nav ms-3">
-                    <a class="nav-link" href="#"
-                       :class="{ activo: ventanaActiva === 'autor' }"
-                       @click.prevent="abrirVentana('autor')">
-                       👤 Autores
-                    </a>
-                    <a class="nav-link" href="#"
-                       :class="{ 'activo-blue': ventanaActiva === 'libros' }"
-                       @click.prevent="abrirVentana('libros')">
-                       📖 Libros
-                    </a>
-                    <a class="nav-link" href="#"
-                       :class="{ activo: ventanaActiva === 'buscar_autor' }"
-                       @click.prevent="abrirVentana('buscar_autor')">
-                       🔍 Buscar Autores
-                    </a>
-                    <a class="nav-link" href="#"
-                       :class="{ 'activo-blue': ventanaActiva === 'buscar_libros' }"
-                       @click.prevent="abrirVentana('buscar_libros')">
-                       🔍 Buscar Libros
-                    </a>
-                </div>
-            </div>
-        </div>
-    </nav>
-
-    <!-- CONTENIDO -->
-    <div class="container-fluid px-4">
-
-        <div v-if="ventanaActiva === 'autor'">
-            <autor ref="autor" @buscar="abrirVentana('buscar_autor')"></autor>
-        </div>
-
-        <div v-if="ventanaActiva === 'buscar_autor'">
-            <buscar_autor ref="buscar_autor"
-                          @modificar="editarAutor($event)"></buscar_autor>
-        </div>
-
-        <div v-if="ventanaActiva === 'libros'">
-            <libros ref="libros" @buscar="abrirVentana('buscar_libros')"></libros>
-        </div>
-
-        <div v-if="ventanaActiva === 'buscar_libros'">
-            <buscar_libros ref="buscar_libros"
-                           @modificar="editarLibro($event)"></buscar_libros>
-        </div>
-
-    </div>
-</div>
-
-<!-- SCRIPTS -->
-<script src="//cdn.jsdelivr.net/npm/alertifyjs@1.14.0/build/alertify.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-<!-- Dexie.js: IndexedDB wrapper (requerido por la cátedra) -->
-<script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
-
-<!-- Módulos de la aplicación -->
-<script src="js/db.js"></script>
-<script src="js/autor.js"></script>
-<script src="js/buscar_autor.js"></script>
-<script src="js/libros.js"></script>
-<script src="js/buscar_libros.js"></script>
-<script src="js/main.js"></script>
-
-</body>
-</html>
+app.mount('#app');
